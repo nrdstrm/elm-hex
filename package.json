@@ -4,5 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "elm": "^0.18.0",
+  }
 }
