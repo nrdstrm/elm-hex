@@ -1,9 +1,10 @@
 module Main exposing (Model, Msg, update, view, subscriptions, init)
 
 import Html exposing (Html, div)
-import Svg exposing (Svg, g, polygon)
-import Svg.Attributes exposing (fill, points)
-import Svg.Events exposing (onMouseOver)
+import Html.Attributes exposing (style)
+import Svg exposing (Svg, g, polygon, text, text_)
+import Svg.Attributes exposing (fill, points, x, y, alignmentBaseline, textAnchor)
+import Svg.Events exposing (onMouseOver, onClick)
 import Dict
 import HexGrid exposing (HexGrid(..))
 
@@ -25,6 +26,7 @@ main =
 type alias Model =
     { title : String
     , grid : HexGrid ()
+    , activePoint : HexGrid.Point
     , hoverPoint : HexGrid.Point
     }
 
@@ -33,6 +35,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { title = ""
       , grid = HexGrid.empty 5 ()
+      , activePoint = ( 0, 0 )
       , hoverPoint = ( -1, -4 )
       }
     , Cmd.none
@@ -45,6 +48,7 @@ init =
 
 type Msg
     = NoOp
+    | ActivePoint HexGrid.Point
     | HoverPoint HexGrid.Point
 
 
@@ -53,6 +57,9 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ActivePoint point ->
+            ( { model | activePoint = point }, Cmd.none )
 
         HoverPoint point ->
             ( { model | hoverPoint = point }, Cmd.none )
@@ -100,18 +107,35 @@ renderHex model =
                     HexGrid.polygonCorners layout point
             in
                 g
-                    [ onMouseOver (HoverPoint point) ]
+                    [ onClick (ActivePoint point)
+                    , onMouseOver (HoverPoint point)
+                    ]
                     [ polygon
                         [ points (cornersToStr <| corners)
                         , fill <|
                             if point == ( 0, 0 ) then
                                 "grey"
+                            else if model.activePoint == point then
+                                "#3498db"
                             else if model.hoverPoint == point then
                                 "#f1c40f"
                             else
                                 "white"
                         ]
                         []
+                    , text_
+                        [ x (toString <| centerX)
+                        , y (toString <| centerY)
+                        , alignmentBaseline "middle"
+                        , textAnchor "middle"
+                        , Html.Attributes.style [ ( "font-size", "16px" ) ]
+                        ]
+                        [ text <|
+                            if point == model.activePoint then
+                                toString model.activePoint
+                            else
+                                ""
+                        ]
                     ]
     in
         Svg.svg
