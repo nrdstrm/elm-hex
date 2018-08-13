@@ -2,7 +2,8 @@ module Main exposing (Model, Msg, update, view, subscriptions, init)
 
 import Html exposing (Html, div)
 import Svg exposing (Svg, g, polygon)
-import Svg.Attributes as Sattr exposing (fill, points)
+import Svg.Attributes exposing (fill, points)
+import Svg.Events exposing (onMouseOver)
 import Dict
 import HexGrid exposing (HexGrid(..))
 
@@ -24,6 +25,7 @@ main =
 type alias Model =
     { title : String
     , grid : HexGrid ()
+    , hoverPoint : HexGrid.Point
     }
 
 
@@ -31,6 +33,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { title = ""
       , grid = HexGrid.empty 5 ()
+      , hoverPoint = ( -1, -4 )
       }
     , Cmd.none
     )
@@ -42,6 +45,7 @@ init =
 
 type Msg
     = NoOp
+    | HoverPoint HexGrid.Point
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -49,6 +53,9 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        HoverPoint point ->
+            ( { model | hoverPoint = point }, Cmd.none )
 
 
 
@@ -93,12 +100,14 @@ renderHex model =
                     HexGrid.polygonCorners layout point
             in
                 g
-                    []
+                    [ onMouseOver (HoverPoint point) ]
                     [ polygon
                         [ points (cornersToStr <| corners)
                         , fill <|
                             if point == ( 0, 0 ) then
                                 "grey"
+                            else if model.hoverPoint == point then
+                                "#f1c40f"
                             else
                                 "white"
                         ]
